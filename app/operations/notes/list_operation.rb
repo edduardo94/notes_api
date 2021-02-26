@@ -1,5 +1,5 @@
 module Notes
-    class ListNotesOperation < Operation
+    class ListOperation < Operation
       DEFAULT_PAGE_VALUE = 1
       DEFAULT_PER_PAGE_VALUE = 30      
   
@@ -26,9 +26,7 @@ module Notes
       def list(context)
         contract = context[:contract]
         current_user = context[:current_user]
-        contract[:notes] = current_user.notes.page(context[:contract][:page])
-        .per(context[:contract][:per_page])
-
+        contract[:notes] = current_user.notes.page(context[:contract][:page]).per(context[:contract][:per_page])
       end
   
       def result(context)        
