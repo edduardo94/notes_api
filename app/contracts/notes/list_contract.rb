@@ -1,5 +1,5 @@
-module Repos
-    class SearchContract < Dry::Validation::Contract      
+module Notes
+    class ListContract < Dry::Validation::Contract      
   
       params do
         optional(:page).value(:integer)

@@ -4,6 +4,9 @@ Rails.application.routes.draw do
       resource :notes do
         get :search
         get :list
+        post :create
+        put :update
+        delete :delete
       end
       post '/auth/login', to: 'auth#authenticate'
     end
