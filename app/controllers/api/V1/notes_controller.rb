@@ -2,6 +2,7 @@ module Api
     module V1
         class NotesController < ApplicationController
             skip_before_action :verify_authenticity_token
+            skip_before_action :authorize_request, only: %i[free_notes]
 
             def create
               Notes::CreateOperation.new.call(create_dependencies) do |op|
@@ -103,6 +104,27 @@ module Api
           end
         end
 
+        def free_notes
+          Notes::ListOperation.new.call(free_notes_dependencies) do |op|
+            op.success do |context|
+              render json: context, status: 200
+            end
+
+            op.failure :validate_contract do |failure|
+              contract = Notes::ListContract.new.(params)
+              render json: {code: 400,
+                            status: Message.bad_request,
+                            error: contract.errors}, status: 400
+            end
+
+            op.failure do |failure|
+              render json: {code: 404,
+                            status: Message.not_found('notes'),
+                            error: failure}, status: 404
+            end
+        end
+        end
+
         private
         def search_dependencies
           {
@@ -136,6 +158,13 @@ module Api
           {
             contract: Notes::DeleteContract.new.(params),
             current_user: @current_user
+          }
+        end
+
+        def free_notes_dependencies
+          {
+            contract: Notes::ListContract.new.(params),
+            current_user: User.find_by(id: 1)
           }
         end
     end

@@ -7,6 +7,7 @@ Rails.application.routes.draw do
         post :create
         put :update
         delete :destroy
+        get :free_notes
       end
       post '/auth/login', to: 'auth#authenticate'
     end
