@@ -50,4 +50,6 @@ test:
 #
 production:
   <<: *default
-   url: <%= ENV['DATABASE_URL'] %>
+  database: notes_api_production
+  username: notes_api
+  password: <%= ENV['NOTES_API_DATABASE_PASSWORD'] %>
