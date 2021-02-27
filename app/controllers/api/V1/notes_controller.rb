@@ -62,6 +62,27 @@ module Api
               end
           end
 
+          def show
+            Notes::ShowOperation.new.call(show_dependencies) do |op|
+              op.success do |context|
+                render json: context, status: 200
+              end
+
+              op.failure :validate_contract do |failure|
+                contract = Notes::ShowContract.new.(params)
+                render json: {code: 400,
+                              status: Message.bad_request,
+                              error: contract.errors}, status: 400
+              end
+
+              op.failure do |failure|
+                render json: {code: 404,
+                              status: Message.not_found('note'),
+                              error: failure}, status: 404
+              end
+          end
+          end
+
           def search
             Notes::SearchOperation.new.call(search_dependencies) do |op|
                 op.success do |context|
@@ -165,6 +186,13 @@ module Api
           {
             contract: Notes::ListContract.new.(params),
             current_user: User.find_by(id: 1)
+          }
+        end
+
+        def show_dependencies
+          {
+            contract: Notes::ShowContract.new.(params),
+            current_user: @current_user
           }
         end
     end
