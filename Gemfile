@@ -19,6 +19,7 @@ gem 'dry-transaction'
 gem 'dry-validation'
 gem 'jwt'
 gem 'rack-cors'
+gem 'kaminari'
 # Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 

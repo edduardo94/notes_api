@@ -8,30 +8,24 @@ module Notes
       step :list
       step :result
 
-      def validate_contract(context)
-        if context[:contract].success?
-          Success(context)
-        else
-          Failure(:invalid_contract)
-        end
-      end
-  
-      def build_request_params(context)
+      def build_request_params(context)        
         contract = context[:contract]        
         contract.values[:page] = DEFAULT_PAGE_VALUE if !contract.key?(:page)
         contract.values[:per_page] = DEFAULT_PER_PAGE_VALUE if !contract.key?(:per_page)                
         Success(context)
       end
   
-      def list(context)
+      def list(context)        
         contract = context[:contract]
-        current_user = context[:current_user]
-        contract[:notes] = current_user.notes.page(context[:contract][:page]).per(context[:contract][:per_page])
+        current_user = context[:current_user]        
+        notes = current_user.notes.page(context[:contract][:page]).per(context[:contract][:per_page])
+        context[:notes] = notes
+        Success(context)
       end
   
       def result(context)        
         notes = context[:notes]        
-        result = {page: context[:contract][:page], repositories: repositories_list}
+        result = {page: context[:contract][:page], notes: notes}
         Success(result)
       end
     end
