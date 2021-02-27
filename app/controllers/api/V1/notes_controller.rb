@@ -68,7 +68,7 @@ module Api
                 end
 
                 op.failure :validate_contract do |failure|
-                  contract = Notes::ListContract.new.(params)
+                  contract = Notes::SearchContract.new.(params)
                   render json: {code: 400,
                                 status: Message.bad_request,
                                 error: contract.errors}, status: 400
@@ -106,7 +106,8 @@ module Api
         private
         def search_dependencies
           {
-            contract: Notes::SearchContract.new.(params)
+            contract: Notes::SearchContract.new.(params),
+            current_user: @current_user
           }
         end
 

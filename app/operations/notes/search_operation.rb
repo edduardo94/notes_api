@@ -1,75 +1,51 @@
 module Notes
     class SearchOperation < Operation
-      include Dry::Transaction      
-      LABEL_SOURCES = ['description','title']
+      include Dry::Transaction
       DEFAULT_PAGE_VALUE = 1
-      DEFAULT_PER_PAGE_VALUE = 30
-  
+      DEFAULT_PER_PAGE_VALUE = 10
+
       step :validate_contract
-      step :build_search_query
       step :build_request_params
       step :search
       step :result
-  
-      def build_search_query(context)
-        search = ''
-        contract = context[:contract]
-  
-        search += "user:#{contract[:username]}+" if contract.key?(:username)
-        if contract.key?(:label)
-          LABEL_SOURCES.each {|source| search += "#{contract[:label]}in:#{source}+"}
-        end
-        if contract.key?(:language)
-          contract[:language] = DEFAULT_LANGUAGE if contract[:language].blank?
-          search += "language:#{contract[:language]}+"
-        end
-  
-        context[:search] = search
-        Success(context)
-      end
-  
+
+
       def build_request_params(context)
         contract = context[:contract]
         contract.values[:page] = DEFAULT_PAGE_VALUE if !contract.key?(:page)
         contract.values[:per_page] = DEFAULT_PER_PAGE_VALUE if !contract.key?(:per_page)
-  
-        context[:query_parameters] = {q: context[:search]}
-        context[:query_parameters][:page] = contract[:page]
-        context[:query_parameters][:per_page] = contract[:per_page]
-        context[:query_parameters][:sort] = contract[:sort] if contract[:sort].present?
-        context[:query_parameters][:order] = contract[:order] if contract[:order].present?
-  
+        query =""
+        if !context[:contract][:title].nil?
+          query = "title like '%#{context[:contract][:title]}%'"
+        end
+
+        if !context[:contract][:description].nil?
+          if !query.nil?
+            query = query + " or "
+          end
+          query = query + "description like '%#{context[:contract][:description]}%'"
+        end
+
+        context[:query] = query
         Success(context)
       end
-  
+
       def search(context)
-        request = HttpClient.new.get(
-          base_url: 'https://api.github.com/search/repositories?',
-          params: context[:query_parameters])
-  
-        response_body = JSON.parse(request.response.body)
-        
-        if response_body['items'].present?
-          context[:repositories] = response_body['items']
-          Success(context)
-        else
+        contract = context[:contract]
+        current_user = context[:current_user]
+        notes = current_user.notes.where(context[:query])
+        .page(context[:contract][:page]).per(context[:contract][:per_page])
+        if notes.nil?
           Failure(:not_found)
+        else
+          context[:notes] = notes
+          Success(context)
         end
       end
-  
+
       def result(context)
-        repositories_list = []
-        repositories = context[:repositories]
-        repositories.each do |repository|
-          repositories_list << {
-              name: repository['full_name'],
-              description: repository['description'],
-              stars: repository['stargazers_count'],
-              forks:repository['forks_count'],
-              author:repository['owner']['login']
-          }
-        end
-        result = {page: context[:contract][:page], repositories: repositories_list}
+        notes = context[:notes]
+        result = {page: context[:contract][:page], notes: notes}
         Success(result)
       end
     end
