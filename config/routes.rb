@@ -6,7 +6,7 @@ Rails.application.routes.draw do
         get :list
         post :create
         put :update
-        delete :delete
+        delete :destroy
       end
       post '/auth/login', to: 'auth#authenticate'
     end
