@@ -1,7 +1,8 @@
 module Notes
     class ListOperation < Operation
+      include Dry::Transaction      
       DEFAULT_PAGE_VALUE = 1
-      DEFAULT_PER_PAGE_VALUE = 30      
+      DEFAULT_PER_PAGE_VALUE = 10 
   
       step :validate_contract
       step :build_request_params
